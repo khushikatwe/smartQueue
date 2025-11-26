@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SmartQ — Admin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="card">
+  <h1>Admin Panel</h1>
+
+  <div class="now" id="nowServing">0</div>
+
+  <button class="button" id="nextBtn">Next</button>
+  <button class="button reset" id="resetBtn">Reset</button>
+
+  <div class="footer" id="summary"></div>
+</div>
+
+<script>
+async function api(path, method="GET") {
+  const r = await fetch(path, {method});
+  return r.json();
+}
+
+async function refresh() {
+  const s = await api('/api/token/status');
+  document.getElementById('nowServing').innerText = s.nowServing || 0;
+  document.getElementById('summary').innerText =
+    `Issued: ${s.lastIssued || 0} • Waiting: ${s.waiting || 0}`;
+}
+
+document.getElementById('nextBtn').onclick = async () => {
+  await api('/api/admin/next', 'POST');
+  await refresh();
+};
+
+document.getElementById('resetBtn').onclick = async () => {
+  if (confirm("Reset queue?")) {
+    await api('/api/admin/reset', 'POST');
+    await refresh();
+  }
+};
+
+setInterval(refresh, 2000);
+window.onload = refresh;
+</script>
+
+</body>
+</html>
